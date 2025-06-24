@@ -1,0 +1,34 @@
+version: "3.8"
+
+services:
+  database:
+    image: postgres:latest
+    container_name: movingshare-database
+    environment:
+      POSTGRES_USER: postgre
+      POSTGRES_PASSWORD: my_strong_password
+      POSTGRES_DB: moveshare
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: movingshare-app
+    depends_on:
+      - database
+    environment:
+      POSTGRES_USER: postgre
+      POSTGRES_PASSWORD: my_strong_password
+      POSTGRES_DB: moveshare
+      POSTGRES_HOST: database 
+      POSTGRES_PORT: 5432
+    ports:
+      - "8080:8080"
+    # command: ["go", "run", "cmd/server/main.go"] # если ты хочешь запускать так
+
+volumes:
+  pgdata:

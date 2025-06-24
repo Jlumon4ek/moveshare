@@ -1,0 +1,91 @@
+definitions:
+  moveshare_internal_models.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  moveshare_internal_models.LoginResponse:
+    properties:
+      access_token:
+        type: string
+    type: object
+  moveshare_internal_models.SignUpRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  moveshare_internal_models.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      username:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Логин по email и password, возвращает JWT access_token
+      parameters:
+      - description: Login data
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/moveshare_internal_models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/moveshare_internal_models.LoginResponse'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+      summary: Авторизация пользователя
+      tags:
+      - auth
+  /sign-up:
+    post:
+      consumes:
+      - application/json
+      description: Создание нового пользователя с email, username и password
+      parameters:
+      - description: User registration data
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/moveshare_internal_models.SignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/moveshare_internal_models.User'
+        "400":
+          description: Bad Request
+        "409":
+          description: Conflict
+        "500":
+          description: Internal Server Error
+      summary: Регистрация пользователя
+      tags:
+      - auth
+swagger: "2.0"
