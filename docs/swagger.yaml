@@ -1,4 +1,57 @@
 definitions:
+  moveshare_internal_models.CreateJobRequest:
+    properties:
+      additional_services:
+        type: string
+      cut_amount:
+        type: number
+      delivery_datetime:
+        type: string
+      description_additional_services:
+        type: string
+      number_of_bedrooms:
+        $ref: '#/definitions/moveshare_internal_models.NumberOfBedrooms'
+      payment_amount:
+        type: number
+      pickup_datetime:
+        type: string
+      title:
+        type: string
+      truck_size:
+        $ref: '#/definitions/moveshare_internal_models.TruckSize'
+    type: object
+  moveshare_internal_models.Job:
+    properties:
+      additional_services:
+        type: string
+      cut_amount:
+        type: number
+      delivery_datetime:
+        type: string
+      description_additional_services:
+        type: string
+      id:
+        type: string
+      number_of_bedrooms:
+        $ref: '#/definitions/moveshare_internal_models.NumberOfBedrooms'
+      payment_amount:
+        type: number
+      pickup_datetime:
+        type: string
+      title:
+        type: string
+      truck_size:
+        $ref: '#/definitions/moveshare_internal_models.TruckSize'
+    type: object
+  moveshare_internal_models.JobListResponse:
+    properties:
+      jobs:
+        items:
+          $ref: '#/definitions/moveshare_internal_models.Job'
+        type: array
+      total:
+        type: integer
+    type: object
   moveshare_internal_models.LoginRequest:
     properties:
       email:
@@ -11,6 +64,22 @@ definitions:
       access_token:
         type: string
     type: object
+  moveshare_internal_models.NumberOfBedrooms:
+    enum:
+    - "1"
+    - "2"
+    - "3"
+    - "4"
+    - 5+
+    - office
+    type: string
+    x-enum-varnames:
+    - OneBedroom
+    - TwoBedrooms
+    - ThreeBedrooms
+    - FourBedrooms
+    - FivePlus
+    - OfficeBedroom
   moveshare_internal_models.SignUpRequest:
     properties:
       email:
@@ -20,6 +89,16 @@ definitions:
       username:
         type: string
     type: object
+  moveshare_internal_models.TruckSize:
+    enum:
+    - small
+    - medium
+    - large
+    type: string
+    x-enum-varnames:
+    - SmallTruck
+    - MediumTruck
+    - LargeTruck
   moveshare_internal_models.User:
     properties:
       created_at:
@@ -33,7 +112,127 @@ definitions:
     type: object
 info:
   contact: {}
+  description: MoveShare backend API
+  title: MoveShare API
+  version: "1.0"
 paths:
+  /jobs:
+    get:
+      consumes:
+      - application/json
+      description: 'Получить jobs по фильтрам: кол-во комнат/офис, даты, размер грузовика,
+        диапазон оплаты, пагинация'
+      parameters:
+      - description: Количество комнат или office
+        in: query
+        name: relocation_size
+        type: string
+      - description: Дата начала (ISO8601)
+        in: query
+        name: date_start
+        type: string
+      - description: Дата конца (ISO8601)
+        in: query
+        name: date_end
+        type: string
+      - description: Размер грузовика (small, medium, large)
+        in: query
+        name: truck_size
+        type: string
+      - description: Минимальная оплата
+        in: query
+        name: payout_min
+        type: number
+      - description: Максимальная оплата
+        in: query
+        name: payout_max
+        type: number
+      - description: Лимит (по умолчанию 10)
+        in: query
+        name: limit
+        type: integer
+      - description: Смещение (по умолчанию 0)
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/moveshare_internal_models.JobListResponse'
+        "500":
+          description: failed to fetch jobs
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Получить список работ (Jobs) с фильтрами и пагинацией
+      tags:
+      - jobs
+    post:
+      consumes:
+      - application/json
+      description: Создать новую работу (Job) с параметрами перевозки
+      parameters:
+      - description: Данные для новой работы
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/moveshare_internal_models.CreateJobRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/moveshare_internal_models.Job'
+        "400":
+          description: invalid request
+          schema:
+            type: string
+        "500":
+          description: failed to create job
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Создание новой работы (Job)
+      tags:
+      - jobs
+  /jobs/{id}:
+    delete:
+      description: Удаляет работу (Job) по её id
+      parameters:
+      - description: ID работы
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: deleted
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "404":
+          description: job not found
+          schema:
+            type: string
+        "500":
+          description: failed to delete job
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Удалить работу (Job) по id
+      tags:
+      - jobs
   /login:
     post:
       consumes:
@@ -88,4 +287,9 @@ paths:
       summary: Регистрация пользователя
       tags:
       - auth
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

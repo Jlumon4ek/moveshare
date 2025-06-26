@@ -15,6 +15,188 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/jobs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получить jobs по фильтрам: кол-во комнат/офис, даты, размер грузовика, диапазон оплаты, пагинация",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "summary": "Получить список работ (Jobs) с фильтрами и пагинацией",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Количество комнат или office",
+                        "name": "relocation_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Дата начала (ISO8601)",
+                        "name": "date_start",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Дата конца (ISO8601)",
+                        "name": "date_end",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Размер грузовика (small, medium, large)",
+                        "name": "truck_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Минимальная оплата",
+                        "name": "payout_min",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Максимальная оплата",
+                        "name": "payout_max",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Лимит (по умолчанию 10)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Смещение (по умолчанию 0)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/moveshare_internal_models.JobListResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "failed to fetch jobs",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Создать новую работу (Job) с параметрами перевозки",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "summary": "Создание новой работы (Job)",
+                "parameters": [
+                    {
+                        "description": "Данные для новой работы",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/moveshare_internal_models.CreateJobRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/moveshare_internal_models.Job"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "failed to create job",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Удаляет работу (Job) по её id",
+                "tags": [
+                    "jobs"
+                ],
+                "summary": "Удалить работу (Job) по id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID работы",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "deleted",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid id",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "job not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "failed to delete job",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Логин по email и password, возвращает JWT access_token",
@@ -100,6 +282,87 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "moveshare_internal_models.CreateJobRequest": {
+            "type": "object",
+            "properties": {
+                "additional_services": {
+                    "type": "string"
+                },
+                "cut_amount": {
+                    "type": "number"
+                },
+                "delivery_datetime": {
+                    "type": "string"
+                },
+                "description_additional_services": {
+                    "type": "string"
+                },
+                "number_of_bedrooms": {
+                    "$ref": "#/definitions/moveshare_internal_models.NumberOfBedrooms"
+                },
+                "payment_amount": {
+                    "type": "number"
+                },
+                "pickup_datetime": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "truck_size": {
+                    "$ref": "#/definitions/moveshare_internal_models.TruckSize"
+                }
+            }
+        },
+        "moveshare_internal_models.Job": {
+            "type": "object",
+            "properties": {
+                "additional_services": {
+                    "type": "string"
+                },
+                "cut_amount": {
+                    "type": "number"
+                },
+                "delivery_datetime": {
+                    "type": "string"
+                },
+                "description_additional_services": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "number_of_bedrooms": {
+                    "$ref": "#/definitions/moveshare_internal_models.NumberOfBedrooms"
+                },
+                "payment_amount": {
+                    "type": "number"
+                },
+                "pickup_datetime": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "truck_size": {
+                    "$ref": "#/definitions/moveshare_internal_models.TruckSize"
+                }
+            }
+        },
+        "moveshare_internal_models.JobListResponse": {
+            "type": "object",
+            "properties": {
+                "jobs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/moveshare_internal_models.Job"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
         "moveshare_internal_models.LoginRequest": {
             "type": "object",
             "properties": {
@@ -119,6 +382,25 @@ const docTemplate = `{
                 }
             }
         },
+        "moveshare_internal_models.NumberOfBedrooms": {
+            "type": "string",
+            "enum": [
+                "1",
+                "2",
+                "3",
+                "4",
+                "5+",
+                "office"
+            ],
+            "x-enum-varnames": [
+                "OneBedroom",
+                "TwoBedrooms",
+                "ThreeBedrooms",
+                "FourBedrooms",
+                "FivePlus",
+                "OfficeBedroom"
+            ]
+        },
         "moveshare_internal_models.SignUpRequest": {
             "type": "object",
             "properties": {
@@ -132,6 +414,19 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "moveshare_internal_models.TruckSize": {
+            "type": "string",
+            "enum": [
+                "small",
+                "medium",
+                "large"
+            ],
+            "x-enum-varnames": [
+                "SmallTruck",
+                "MediumTruck",
+                "LargeTruck"
+            ]
         },
         "moveshare_internal_models.User": {
             "type": "object",
@@ -150,17 +445,24 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
+	Version:          "1.0",
 	Host:             "",
 	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Title:            "MoveShare API",
+	Description:      "MoveShare backend API",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

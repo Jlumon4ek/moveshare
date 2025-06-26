@@ -16,6 +16,14 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+// @title MoveShare API
+// @version 1.0
+// @description MoveShare backend API
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+
 func main() {
 	config.SetupLogger()
 	cfg, err := config.LoadDatabaseSettings()
